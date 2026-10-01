@@ -1,20 +1,7 @@
 # Maqai
 
-A guided rooting tool for Meta Quest, built with Tauri and Leptos.
+Maqai is a tool to help installing Rooting tools for the Meta Quest series of Devices.
 
-## Development
-
-Install the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/), then:
-
-```sh
-cargo install tauri-cli --version '^2' --locked
-cargo install trunk --locked
-rustup target add wasm32-unknown-unknown
-cargo tauri dev
-```
-
-Build with `cargo tauri build`.
-
-## License
-
-GPL-3.0-or-later. Based on the [Tauri Leptos template](https://github.com/tauri-apps/create-tauri-app), licensed under MIT OR Apache-2.0. Original notices are in [licenses](licenses/).
+### Third-Party Notices
+Parts of this project were created using [tauri-apps/create-tauri-app](https://github.com/tauri-apps/create-tauri-app), which is dual-licensed under the MIT License and Apache License 2.0. 
+The original license texts and copyright notices can be found in the [licenses](./licenses/) folder.

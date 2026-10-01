@@ -1,7 +1,7 @@
 [package]
 name = "maqai"
 version = "0.1.0"
-description = "Guided Meta Quest device setup and rooting assistant"
+description = "Maqai is a tool to help installing Rooting tools for the Meta Quest series of Devices."
 edition = "2021"
 authors = ["Blockmaster2706 <wynter@breedable.men>"]
 license = "GPL-3.0-or-later"

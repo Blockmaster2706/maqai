@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Blockmaster2706 <wynter@breedable.men>"]
 license = "GPL-3.0-or-later"
-repository = "https://github.com/Blockmaster2706/Maqai"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
@@ -20,7 +19,7 @@ console_error_panic_hook = "0.1.7"
 members = ["src-tauri"]
 
 [profile.release]
-codegen-units = 1
-lto = true
-opt-level = "s"
-strip = true
+opt-level = 2
+
+[profile.dev.package."*"]
+opt-level = 2
