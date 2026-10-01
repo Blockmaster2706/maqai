@@ -48,27 +48,30 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main class="container">
-            <h1>"Maqai"</h1>
+            <div class="sidebar">
+                <h2>"Maqai"</h2>
 
-            <div class="row">
-                <a href="https://tauri.app" target="_blank">
-                    <img src="public/tauri.svg" class="logo tauri" alt="Tauri logo"/>
-                </a>
-                <a href="https://docs.rs/leptos/" target="_blank">
-                    <img src="public/leptos.svg" class="logo leptos" alt="Leptos logo"/>
-                </a>
+                <button class="menuentry" href="#">"Getting Started"</button>
+                <button class="menuentry" href="#">"Settings"</button>
+                <button class="menuentry" href="#">"Settings"</button>
+                <button class="menuentry" href="#">"Settings"</button>
+                <button class="menuentry" href="#">"Settings"</button>
             </div>
-            <p>"Click on the Tauri and Leptos logos to learn more."</p>
+            <div class="app-content">
 
-            <form class="row" on:submit=greet>
-                <input
-                    id="greet-input"
-                    placeholder="Enter a name..."
-                    on:input=update_name
-                />
-                <button type="submit">"Greet"</button>
-            </form>
-            <p>{ move || greet_msg.get() }</p>
+
+                <p>"Click on the Tauri and Leptos logos to learn more."</p>
+
+                <form class="row" on:submit=greet>
+                    <input
+                        id="greet-input"
+                        placeholder="Enter a name..."
+                        on:input=update_name
+                    />
+                    <button type="submit">"Greet"</button>
+                </form>
+                <p>{ move || greet_msg.get() }</p>
+            </div>
             <footer>
                 <span>"Built by Blockmaster2706. "<a href="https://github.com/Blockmaster2706/maqai/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">"License"</a></span>
                 <span>"Get Help via "<a href="https://discord.gg/qhwxvqrg2r" target="_blank" rel="noopener noreferrer">"discord"</a>" or "<a href="mailto:wynter@breedable.men" target="_blank" rel="noopener noreferrer">"email"</a>"."</span>
