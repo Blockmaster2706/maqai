@@ -1,0 +1,8 @@
+[jobs.run-hyprland]
+command = [
+    "sh", "-c",
+    "pkill -x \"maqai\" || true && WS=$(hyprctl activewindow -j | grep -oP '\"id\":\\s*\\K\\d+' | head -n 1) && hyprctl keyword dwindle:permanent_direction_override true && hyprctl dispatch layoutmsg preselect r && cargo tauri dev & sleep 0.4 && ADDR=$(hyprctl clients -j | grep -B 2 '\"title\": \"Maqai\"' | grep -oP '\"address\": \"\\K0x[0-9a-f]+' | head -n 1) && hyprctl dispatch movetoworkspacesilent $WS,address:$ADDR && hyprctl keyword dwindle:permanent_direction_override false"
+]
+need_stdout = true
+background = false
+on_change_strategy = "kill_then_restart"
