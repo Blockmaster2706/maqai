@@ -1,6 +1,6 @@
 [package]
 name = "maqai"
-version = "0.1.0"
+version = "0.2.0"
 description = "Maqai is a tool to help installing Rooting tools for the Meta Quest series of Devices."
 edition = "2021"
 authors = ["Blockmaster2706 <wynter@breedable.men>"]
