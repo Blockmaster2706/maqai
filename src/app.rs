@@ -122,7 +122,7 @@ pub fn App() -> impl IntoView {
                 </Show>
             </div>
             <footer>
-                <span>"Built by Blockmaster2706. "<a href="https://github.com/Blockmaster2706/maqai/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">"License"</a></span>
+                <span>"Built by Blockmaster2706. "<a href="https://github.com/Blockmaster2706/maqai/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">"License"</a>", "<a href="https://github.com/Blockmaster2706/maqai" target="_blank" rel="noopener noreferrer">"Source Code"</a></span>
                 <span>"Get Help via "<a href="https://discord.gg/qhwxvqrg2r" target="_blank" rel="noopener noreferrer">"discord"</a>" or "<a href="mailto:wynter@breedable.men" target="_blank" rel="noopener noreferrer">"email"</a>"."</span>
             </footer>
         </main>
