@@ -37,6 +37,7 @@ pub fn sidebar() -> impl IntoView {
                 <h2>"Maqai"</h2>
 
                 <button class="menuentry" href="#">"Getting Started"</button>
+                <crate::updates::AppUpdates />
 
                 <div class="sidebar-footer">
                     <div class="version-warning" class:hidden=move || check_version_compatible()>

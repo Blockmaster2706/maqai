@@ -39,7 +39,10 @@ type Subscription = (js_sys::Function, Closure<dyn FnMut(JsValue)>);
 
 impl DeviceInfo {
     pub fn is_supported_headset(&self) -> bool {
-        matches!(self.product.trim(), "Quest 2" | "Quest Pro" | "Quest 3" | "Quest 3S")
+        matches!(
+            self.product.trim(),
+            "Quest 2" | "Quest Pro" | "Quest 3" | "Quest 3S"
+        )
     }
 }
 

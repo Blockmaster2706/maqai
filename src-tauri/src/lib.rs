@@ -9,6 +9,7 @@ pub mod adb;
 mod compatibility;
 mod rooting;
 pub mod state;
+mod updates;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -21,8 +22,14 @@ pub fn run() {
     tauri::Builder::default()
         .manage(state::AppState::default())
         .manage(rooting::Installer::default())
+        .manage(updates::PendingUpdate::default())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            let mut updater = tauri_plugin_updater::Builder::new();
+            if let Some(key) = updates::public_key() {
+                updater = updater.pubkey(key);
+            }
+            app.handle().plugin(updater.build())?;
             let handle = app.handle().clone();
             std::thread::spawn(move || {
                 adb::listener(&handle);
@@ -34,7 +41,9 @@ pub fn run() {
             state::get_state,
             rooting::install_singularity,
             rooting::restart_adb,
-            rooting::verify_root
+            rooting::verify_root,
+            updates::check_app_update,
+            updates::install_app_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -5,3 +5,7 @@
 .env
 *.key
 /src-tauri/adb/*
+__pycache__/
+/release-assets/
+/release-ready/
+/src-tauri/tauri.release.conf.json

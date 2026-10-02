@@ -1,0 +1,200 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: SemVer increment (current builds the existing version)
+        type: choice
+        default: patch
+        options: [current, patch, minor, major]
+      version:
+        description: Optional exact major.minor.patch version (overrides increment)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maqai-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
+      tag: ${{ steps.prepare.outputs.tag }}
+      sha: ${{ steps.prepare.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate signing configuration
+        env:
+          SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+        run: |
+          test -n "$SIGNING_KEY" || { echo 'Set TAURI_SIGNING_PRIVATE_KEY in repository secrets.'; exit 1; }
+          test -n "$PUBLIC_KEY" || { echo 'Set TAURI_UPDATER_PUBLIC_KEY in repository variables.'; exit 1; }
+      - name: Bump version and prepare draft
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUMP: ${{ inputs.bump }}
+          EXACT_VERSION: ${{ inputs.version }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          args=("$BUMP")
+          if [ -n "$EXACT_VERSION" ]; then args+=(--version "$EXACT_VERSION"); fi
+          version=$(python scripts/bump-version.py "${args[@]}")
+          tag="v$version"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Cargo.toml Cargo.lock src-tauri/Cargo.toml src-tauri/tauri.conf.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Release $tag"
+            git push origin "HEAD:$DEFAULT_BRANCH"
+          fi
+          sha=$(git rev-parse HEAD)
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            test "$(git rev-list -n 1 "$tag")" = "$sha" || { echo 'The existing tag points to another commit. Choose a new version.'; exit 1; }
+          else
+            git tag "$tag"
+            git push origin "$tag"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --json isDraft --jq .isDraft)" = true || { echo 'This version is already published. Choose a new version.'; exit 1; }
+          else
+            gh release create "$tag" --verify-tag --draft --title "Maqai $tag" --generate-notes
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            platform: linux
+            bundles: appimage,deb,rpm
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows
+            bundles: nsis
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            platform: macos
+            bundles: app,dmg
+          - os: macos-15
+            target: aarch64-apple-darwin
+            platform: macos
+            bundles: app,dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown,${{ matrix.target }}
+          components: rustfmt, clippy
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
+      - name: Install build tools
+        run: |
+          cargo install trunk --locked --version 0.21.14
+          cargo install tauri-cli --locked --version 2.12.1
+      - name: Fetch bundled ADB
+        run: python scripts/fetch-platform-tools.py ${{ matrix.platform }}
+      - name: Validate release source
+        run: |
+          python -m unittest discover -s scripts -p 'test_*.py'
+          cargo fmt --all -- --check
+          cargo clippy --locked -p maqai-ui --target wasm32-unknown-unknown -- -D warnings
+          cargo clippy --locked -p maqai --all-targets -- -D warnings
+          cargo test --locked -p maqai --lib
+      - name: Build signed release
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for variable in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!variable}" ]; then unset "$variable"; fi
+          done
+          python scripts/configure-updater.py
+          cargo tauri build --locked --config src-tauri/tauri.release.conf.json --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Collect installers and updater metadata
+        run: >-
+          python scripts/package-release.py
+          --target ${{ matrix.target }}
+          --version ${{ needs.prepare.outputs.version }}
+          --repository ${{ github.repository }}
+          --bundle-root target/${{ matrix.target }}/release/bundle
+          --output release-assets
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: release-assets/*
+          if-no-files-found: error
+
+  assemble:
+    needs: [prepare, build]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate complete updater manifest
+        run: >-
+          python scripts/finalize-release.py
+          --source release-assets
+          --output release-ready
+          --version ${{ needs.prepare.outputs.version }}
+      - name: Upload to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          gh release upload "$RELEASE_TAG" release-ready/* --clobber
+          echo "Draft ready: https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Review all platform installers and latest.json, then publish the draft to make the update available.' >> "$GITHUB_STEP_SUMMARY"

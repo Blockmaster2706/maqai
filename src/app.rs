@@ -50,7 +50,7 @@ pub fn App() -> impl IntoView {
         <main class="container">
             <Sidebar />
             <div class="app-content">
-            
+
             <form class="getting-started-flow" class:flow-completed=move || flow.get().flow_completed on:submit=move |ev: SubmitEvent| {
                 ev.prevent_default();
             }>
