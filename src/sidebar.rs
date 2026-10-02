@@ -12,43 +12,8 @@ pub fn sidebar() -> impl IntoView {
     let backend_state = crate::backend_state::use_backend_state();
 
     let check_version_compatible = move || {
-        let build = backend_state.get().buildnumber.as_str().trim().parse::<u64>();
-        let product = backend_state.get().product;
-
-        // If we can't read the product, show no warning yet.
-        if product.is_empty() {
-            return true;
-        }
-        
-        if product == "Quest 2" {
-            if let Ok(build) = build {
-                if build >= 52106880032500150 && build < 52242990035800150 {
-                    return true;
-                }
-            }
-        }
-        if product == "Quest Pro" {
-            if let Ok(build) = build {
-                if build >= 51360500027200340 && build < 51503870035800340 {
-                    return true;
-                }
-            }
-        }
-        if product == "Quest 3" {
-            if let Ok(build) = build {
-                if build >= 51943020036500520 && build < 52433670048800520 {
-                    return true;
-                }
-            }
-        }
-        if product == "Quest 3S" {
-            if let Ok(build) = build {
-                if build >= 2921110037200610 && build < 3814840024700611 {
-                    return true;
-                }
-            }
-        }
-        false
+        let device = backend_state.get();
+        device.state != "connected" || device.product.is_empty() || device.firmware_compatible
     };
 
     let get_productname_or_generic = move || {
@@ -56,8 +21,10 @@ pub fn sidebar() -> impl IntoView {
         if product.is_empty() {
             match backend_state.get().state.as_str() {
                 "unauthorized" => "Unauthorized Device".to_string(),
+                "offline" => "Offline Device".to_string(),
                 "bootloader" => "Device in Bootloader Mode".to_string(),
                 "sideload" => "Device in Sideload Mode".to_string(),
+                "disconnected" => "No Device".to_string(),
                 _ => product,
             }
         } else {
@@ -70,14 +37,14 @@ pub fn sidebar() -> impl IntoView {
                 <h2>"Maqai"</h2>
 
                 <button class="menuentry" href="#">"Getting Started"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
 
                 <div class="sidebar-footer">
                     <div class="version-warning" class:hidden=move || check_version_compatible()>
-                        <p>"Your firmware version is incompatible with Singularity!"</p>
+                        <p>{move || if backend_state.get().is_supported_headset() {
+                            "Your firmware version is incompatible with Singularity!"
+                        } else {
+                            "Unsupported device. Connect a Meta Quest headset."
+                        }}</p>
                     </div>
 
                     <div
@@ -85,6 +52,7 @@ pub fn sidebar() -> impl IntoView {
                         class:disconnected=move || matches!(backend_state.get().state.as_str(), "" | "disconnected")
                         class:connected=move || backend_state.get().state == "connected"
                         class:unauthorized=move || backend_state.get().state == "unauthorized"
+                        class:offline=move || backend_state.get().state == "offline"
                         class:bootloader=move || backend_state.get().state == "bootloader"
                         class:sideload=move || backend_state.get().state == "sideload"
                     >
@@ -94,7 +62,6 @@ pub fn sidebar() -> impl IntoView {
                         <div class="buildnumber">{move || backend_state.get().buildnumber}</div>
                     </div>
                 </div>
-
             </div>
     }
 }

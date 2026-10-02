@@ -8,6 +8,7 @@
 mod app;
 mod backend_state;
 mod sidebar;
+mod rooting;
 
 use app::*;
 use leptos::prelude::*;

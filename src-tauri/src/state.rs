@@ -13,6 +13,7 @@ use tauri::{Emitter, Manager};
 pub enum DeviceState {
     Connected,
     Unauthorized,
+    Offline,
     Bootloader,
     Sideload,
     #[default]
@@ -26,6 +27,9 @@ pub struct DeviceInfo {
     pub serial: String,
     pub product: String,
     pub state: DeviceState,
+    pub firmware_compatible: bool,
+    pub error: String,
+    pub platform: String,
 }
 
 #[derive(Default)]

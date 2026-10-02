@@ -6,6 +6,8 @@
 // (at your option) any later version.
 
 pub mod adb;
+mod compatibility;
+mod rooting;
 pub mod state;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -18,6 +20,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .manage(state::AppState::default())
+        .manage(rooting::Installer::default())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let handle = app.handle().clone();
@@ -26,7 +29,13 @@ pub fn run() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, state::get_state])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            state::get_state,
+            rooting::install_singularity,
+            rooting::restart_adb,
+            rooting::verify_root
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

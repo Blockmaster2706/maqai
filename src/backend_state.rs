@@ -30,9 +30,18 @@ pub struct DeviceInfo {
     pub serial: String,
     pub product: String,
     pub state: String,
+    pub firmware_compatible: bool,
+    pub error: String,
+    pub platform: String,
 }
 
 type Subscription = (js_sys::Function, Closure<dyn FnMut(JsValue)>);
+
+impl DeviceInfo {
+    pub fn is_supported_headset(&self) -> bool {
+        matches!(self.product.trim(), "Quest 2" | "Quest Pro" | "Quest 3" | "Quest 3S")
+    }
+}
 
 pub fn use_backend_state() -> ReadSignal<DeviceInfo> {
     let (state, set_state) = signal(DeviceInfo::default());
@@ -49,15 +58,14 @@ pub fn use_backend_state() -> ReadSignal<DeviceInfo> {
     });
 
     spawn_local(async move {
-        let apply = move |value: JsValue| {
-            match serde_wasm_bindgen::from_value::<DeviceInfo>(value) {
-                Ok(snapshot) => set_state.update(|current| {
-                    if snapshot.revision >= current.revision {
-                        *current = snapshot;
-                    }
-                }),
-                Err(error) => leptos::logging::error!("Could not decode backend state: {error}"),
-            }
+        let apply = move |value: JsValue| match serde_wasm_bindgen::from_value::<DeviceInfo>(value)
+        {
+            Ok(snapshot) => set_state.update(|current| {
+                if snapshot.revision >= current.revision {
+                    *current = snapshot;
+                }
+            }),
+            Err(error) => leptos::logging::error!("Could not decode backend state: {error}"),
         };
         let callback = Closure::<dyn FnMut(JsValue)>::new(apply);
         let unlisten = match subscribe_state(callback.as_ref().unchecked_ref()).await {
