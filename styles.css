@@ -156,7 +156,7 @@ footer {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s;
   height: calc(100vh - 2.5rem - 1px);
-  width: calc(200px - 1px);
+  width: calc(210px - 1px);
   
   @media (prefers-color-scheme: dark) {
     background-color: var(--sidebar-bg-color);
@@ -170,8 +170,8 @@ footer {
   padding-right: 2rem;
   position: absolute;
   top: 0;
-  left: 200px; /* width of the sidebar */
-  width: calc(100vw - 200px);
+  left: 210px; /* width of the sidebar */
+  width: calc(100vw - 210px);
   height: calc(100vh - 3rem);
   align-items: center;
   display: flex;
@@ -216,5 +216,92 @@ footer {
     @media (prefers-color-scheme: dark) {
       border-color: #ffffff;
     }
+  }
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(100%);
+}
+
+.device-info {
+  border: 1px solid #000;
+  border-radius: 8px;
+  background-color: var(--bg-color);
+  align-items: center;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+  width: calc(100% - 2rem - 2px);
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #ffffff;
+  }
+
+  p {
+    margin: 0.5rem 0;
+  }
+
+  &.disconnected {
+    display: none;
+  }
+
+  &.connected {
+    border-color: #22c55e;
+  }
+
+  &.unauthorized {
+    border-color: #f59e0b;
+
+    .buildnumber {
+      display: none;
+    }
+  }
+
+  &.bootloader {
+    border-color: #3b82f6;
+
+    .buildnumber {
+      display: none;
+    }
+  }
+
+  &.sideload {
+    border-color: #a855f7;
+
+    .buildnumber {
+      display: none;
+    }
+  }
+}
+
+.version-warning {
+  background-color: var(--bg-color);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  background-color: #fff3e0;
+  color: #b45309;
+  align-items: center;
+  margin-top: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+  width: calc(100% - 2rem - 2px);
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #f59e0b;
+    background-color: #4b2e0f;
+    color: #f59e0b;
+  }
+
+  p {
+    margin: 0.5rem 0;
+  }
+
+  &.hidden {
+    display: none;
   }
 }

@@ -6,6 +6,8 @@
 // (at your option) any later version.
 
 mod app;
+mod backend_state;
+mod sidebar;
 
 use app::*;
 use leptos::prelude::*;

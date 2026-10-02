@@ -10,6 +10,8 @@ use leptos::{ev::SubmitEvent, prelude::*};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
+use crate::sidebar::Sidebar;
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
@@ -48,18 +50,8 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main class="container">
-            <div class="sidebar">
-                <h2>"Maqai"</h2>
-
-                <button class="menuentry" href="#">"Getting Started"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-                <button class="menuentry" href="#">"Settings"</button>
-            </div>
+            <Sidebar />
             <div class="app-content">
-
-
                 <p>"Click on the Tauri and Leptos logos to learn more."</p>
 
                 <form class="row" on:submit=greet>

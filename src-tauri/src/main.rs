@@ -8,6 +8,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use maqai_lib::adb;
+
 fn main() {
+
+    const ADB_COMMAND: &str = "devices";
+    match adb::run_adb_command(ADB_COMMAND) {
+        Ok(output) => println!("ADB Output: {}", output),
+        Err(e) => eprintln!("ADB Error: {}", e),
+    }
+
     maqai_lib::run()
 }

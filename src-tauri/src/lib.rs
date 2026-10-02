@@ -5,6 +5,9 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+pub mod adb;
+pub mod state;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -14,8 +17,16 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(state::AppState::default())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .setup(|app| {
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                adb::listener(&handle);
+            });
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![greet, state::get_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
