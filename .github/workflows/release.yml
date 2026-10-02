@@ -151,7 +151,7 @@ jobs:
             if [ -z "${!variable}" ]; then unset "$variable"; fi
           done
           python scripts/configure-updater.py
-          cargo tauri build --locked --config src-tauri/tauri.release.conf.json --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          cargo tauri build --config src-tauri/tauri.release.conf.json --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
       - name: Collect installers and updater metadata
         run: >-
           python scripts/package-release.py
