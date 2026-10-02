@@ -4,3 +4,4 @@
 .DS_Store
 .env
 *.key
+/src-tauri/adb/*
