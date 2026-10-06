@@ -8,6 +8,7 @@
 mod app;
 mod backend_state;
 mod getting_started;
+mod firmware_updater;
 mod rooting;
 mod sidebar;
 mod updates;

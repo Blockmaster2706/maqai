@@ -6,9 +6,12 @@
 // (at your option) any later version.
 
 use leptos::prelude::*;
+use leptos_router::hooks::use_navigate;
 
 #[component]
 pub fn sidebar() -> impl IntoView {
+    let navigate_home = use_navigate();
+    let navigate_updater = use_navigate();
     let backend_state = crate::backend_state::use_backend_state();
 
     let check_version_compatible = move || {
@@ -36,7 +39,8 @@ pub fn sidebar() -> impl IntoView {
         <div class="sidebar">
                 <h2>"Maqai"</h2>
 
-                <button class="menuentry" href="#">"Getting Started"</button>
+                <button class="menuentry" on:click=move |_| navigate_home("/", Default::default())>"Getting Started"</button>
+                <button class="menuentry" on:click=move |_| navigate_updater("/Updater", Default::default())>"Update Firmware"</button>
                 <crate::updates::AppUpdates />
 
                 <div class="sidebar-footer">
