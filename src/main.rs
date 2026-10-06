@@ -7,6 +7,7 @@
 
 mod app;
 mod backend_state;
+mod getting_started;
 mod rooting;
 mod sidebar;
 mod updates;
