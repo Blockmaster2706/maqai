@@ -8,7 +8,7 @@
 use leptos::prelude::*;
 use leptos_router::{components::*, path};
 
-use crate::{getting_started::GettingStarted, sidebar::Sidebar, firmware_updater::FirmwareUpdater};
+use crate::{firmware_updater::FirmwareUpdater, getting_started::GettingStarted, sidebar::Sidebar};
 
 #[component]
 pub fn App() -> impl IntoView {

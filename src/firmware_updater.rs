@@ -1,6 +1,4 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn FirmwareUpdater() -> impl IntoView {
-    
-}
+pub fn FirmwareUpdater() -> impl IntoView {}
