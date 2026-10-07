@@ -1,4 +1,5 @@
 use leptos::{prelude::*, task::spawn_local};
+use maqai_types::DeviceState;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -54,7 +55,7 @@ pub fn RootingFlow() -> impl IntoView {
     let (root_output, set_root_output) = signal(String::new());
     let ready = move || {
         let current = device.get();
-        current.state == "connected"
+        current.state == DeviceState::Connected
             && current.error.is_empty()
             && !current.serial.is_empty()
             && !current.buildnumber.is_empty()
@@ -65,15 +66,15 @@ pub fn RootingFlow() -> impl IntoView {
         if !current.error.is_empty() {
             return current.error;
         }
-        match current.state.as_str() {
-            "unauthorized" => "Your Quest is connected but USB debugging is not authorized. Put on the headset, select Always allow from this computer, then Allow.".into(),
-            "offline" => "Your Quest is connected but offline. Wake it, reconnect the USB cable, and approve any USB debugging prompt.".into(),
-            "bootloader" | "sideload" => "Your Quest is in bootloader or sideload mode. Start Horizon OS normally before continuing.".into(),
-            "connected" if current.product.is_empty() || current.buildnumber.is_empty() => "Reading the headset model and firmware. Keep it awake and connected.".into(),
-            "connected" if !current.is_supported_headset() => format!("{} detected. Maqai supports Meta Quest 2, Quest Pro, Quest 3, and Quest 3S. Disconnect this device and connect your Quest headset instead.", current.product),
-            "connected" if !current.firmware_compatible => format!("{} firmware {} is outside the supported Singularity range. Installation is unavailable for this device.", current.product, current.buildnumber),
-            "connected" => format!("{} connected. Firmware {} is compatible with Singularity.", current.product, current.buildnumber),
-            _ => "No USB headset detected. Connect your Quest with a USB data cable and keep it awake. A charging-only cable will not work.".into(),
+        match current.state {
+            DeviceState::Unauthorized => "Your Quest is connected but USB debugging is not authorized. Put on the headset, select Always allow from this computer, then Allow.".into(),
+            DeviceState::Offline => "Your Quest is connected but offline. Wake it, reconnect the USB cable, and approve any USB debugging prompt.".into(),
+            DeviceState::Bootloader | DeviceState::Sideload => "Your Quest is in bootloader or sideload mode. Start Horizon OS normally before continuing.".into(),
+            DeviceState::Connected if current.product.is_empty() || current.buildnumber.is_empty() => "Reading the headset model and firmware. Keep it awake and connected.".into(),
+            DeviceState::Connected if !current.is_supported_headset() => format!("{} detected. Maqai supports Meta Quest 2, Quest Pro, Quest 3, and Quest 3S. Disconnect this device and connect your Quest headset instead.", current.product),
+            DeviceState::Connected if !current.firmware_compatible => format!("{} firmware {} is outside the supported Singularity range. Installation is unavailable for this device.", current.product, current.buildnumber),
+            DeviceState::Connected => format!("{} connected. Firmware {} is compatible with Singularity.", current.product, current.buildnumber),
+            DeviceState::Disconnected => "No USB headset detected. Connect your Quest with a USB data cable and keep it awake. A charging-only cable will not work.".into(),
         }
     };
 
@@ -133,7 +134,7 @@ pub fn RootingFlow() -> impl IntoView {
 
     let can_verify = move || {
         device.with(|current| {
-            current.state == "connected"
+            current.state == DeviceState::Connected
                 && current.error.is_empty()
                 && current.is_supported_headset()
                 && !current.serial.is_empty()
@@ -212,7 +213,7 @@ pub fn RootingFlow() -> impl IntoView {
                 </Show>
             </Show>
             <Show when=move || ((1..=2).contains(&step.get()) || step.get() == 10) && !busy.get() && device.with(|current| {
-                current.state != "connected" || !current.error.is_empty()
+                current.state != DeviceState::Connected || !current.error.is_empty()
                     || current.product.is_empty() || current.buildnumber.is_empty()
             })>
                 <details class="connection-help" open=move || !ready()>

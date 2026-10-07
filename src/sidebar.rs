@@ -7,6 +7,7 @@
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
+use maqai_types::DeviceState;
 
 #[component]
 pub fn sidebar() -> impl IntoView {
@@ -16,18 +17,20 @@ pub fn sidebar() -> impl IntoView {
 
     let check_version_compatible = move || {
         let device = backend_state.get();
-        device.state != "connected" || device.product.is_empty() || device.firmware_compatible
+        device.state != DeviceState::Connected
+            || device.product.is_empty()
+            || device.firmware_compatible
     };
 
     let get_productname_or_generic = move || {
         let product = backend_state.get().product;
         if product.is_empty() {
-            match backend_state.get().state.as_str() {
-                "unauthorized" => "Unauthorized Device".to_string(),
-                "offline" => "Offline Device".to_string(),
-                "bootloader" => "Device in Bootloader Mode".to_string(),
-                "sideload" => "Device in Sideload Mode".to_string(),
-                "disconnected" => "No Device".to_string(),
+            match backend_state.get().state {
+                DeviceState::Unauthorized => "Unauthorized Device".to_string(),
+                DeviceState::Offline => "Offline Device".to_string(),
+                DeviceState::Bootloader => "Device in Bootloader Mode".to_string(),
+                DeviceState::Sideload => "Device in Sideload Mode".to_string(),
+                DeviceState::Disconnected => "No Device".to_string(),
                 _ => product,
             }
         } else {
@@ -54,15 +57,15 @@ pub fn sidebar() -> impl IntoView {
 
                     <div
                         class="device-info"
-                        class:disconnected=move || matches!(backend_state.get().state.as_str(), "" | "disconnected")
-                        class:connected=move || backend_state.get().state == "connected"
-                        class:unauthorized=move || backend_state.get().state == "unauthorized"
-                        class:offline=move || backend_state.get().state == "offline"
-                        class:bootloader=move || backend_state.get().state == "bootloader"
-                        class:sideload=move || backend_state.get().state == "sideload"
+                        class:disconnected=move || backend_state.get().state == DeviceState::Disconnected
+                        class:connected=move || backend_state.get().state == DeviceState::Connected
+                        class:unauthorized=move || backend_state.get().state == DeviceState::Unauthorized
+                        class:offline=move || backend_state.get().state == DeviceState::Offline
+                        class:bootloader=move || backend_state.get().state == DeviceState::Bootloader
+                        class:sideload=move || backend_state.get().state == DeviceState::Sideload
                     >
                         <p>{move || get_productname_or_generic()} " detected"</p>
-                        <p hidden=move || backend_state.get().state != "unauthorized">"Please put on your headset and accept the request."</p>
+                        <p hidden=move || backend_state.get().state != DeviceState::Unauthorized>"Please put on your headset and accept the request."</p>
                         <div class="buildnumber">"Firmware Version"</div>
                         <div class="buildnumber">{move || backend_state.get().buildnumber}</div>
                     </div>

@@ -6,6 +6,7 @@
 // (at your option) any later version.
 
 use leptos::{prelude::*, task::spawn_local};
+use maqai_types::DeviceInfo;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(inline_js = "
@@ -23,28 +24,7 @@ extern "C" {
     async fn fetch_state() -> Result<JsValue, JsValue>;
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
-pub struct DeviceInfo {
-    pub revision: u64,
-    pub buildnumber: String,
-    pub serial: String,
-    pub product: String,
-    pub state: String,
-    pub firmware_compatible: bool,
-    pub error: String,
-    pub platform: String,
-}
-
 type Subscription = (js_sys::Function, Closure<dyn FnMut(JsValue)>);
-
-impl DeviceInfo {
-    pub fn is_supported_headset(&self) -> bool {
-        matches!(
-            self.product.trim(),
-            "Quest 2" | "Quest Pro" | "Quest 3" | "Quest 3S"
-        )
-    }
-}
 
 pub fn use_backend_state() -> ReadSignal<DeviceInfo> {
     let (state, set_state) = signal(DeviceInfo::default());

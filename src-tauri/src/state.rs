@@ -8,29 +8,7 @@
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
 
-#[derive(Clone, Default, serde::Serialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum DeviceState {
-    Connected,
-    Unauthorized,
-    Offline,
-    Bootloader,
-    Sideload,
-    #[default]
-    Disconnected,
-}
-
-#[derive(Clone, Default, serde::Serialize, Debug)]
-pub struct DeviceInfo {
-    pub revision: u64,
-    pub buildnumber: String,
-    pub serial: String,
-    pub product: String,
-    pub state: DeviceState,
-    pub firmware_compatible: bool,
-    pub error: String,
-    pub platform: String,
-}
+pub use maqai_types::{DeviceInfo, DeviceState};
 
 #[derive(Default)]
 pub struct AppState(Mutex<DeviceInfo>);

@@ -15,10 +15,11 @@ serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 console_error_panic_hook = "0.1.7"
 leptos_router = "0.8.17"
+maqai-types = { path = "maqai-types" }
 
 
 [workspace]
-members = ["src-tauri"]
+members = ["src-tauri", "maqai-types"]
 
 [profile.release]
 opt-level = 2

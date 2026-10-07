@@ -1,0 +1,12 @@
+[package]
+name = "maqai-types"
+version = "0.3.0"
+edition = "2021"
+authors = ["Blockmaster2706 <wynter@breedable.men>"]
+license = "GPL-3.0-or-later"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1"
