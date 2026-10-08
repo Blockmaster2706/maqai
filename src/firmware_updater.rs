@@ -21,7 +21,7 @@ extern "C" {
 pub fn FirmwareUpdater() -> impl IntoView {
     let backend_state = crate::backend_state::use_backend_state();
 
-    view!{
+    view! {
         <h1>"Update Firmware"</h1>
         <Show when=move || backend_state.get().state == DeviceState::Disconnected>
             "Please turn on your Quest while holding the volume down button. Then, select \"sideload update\" using the volume buttons and confirm using the power button. Then plug it into your PC using a USB Cable."
