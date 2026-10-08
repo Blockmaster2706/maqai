@@ -31,11 +31,12 @@ def fetch(platform, destination):
                     shutil.copyfileobj(source, file)
                 if platform != "windows":
                     target.chmod((info.external_attr >> 16) & 0o777 or 0o644)
-        executable = destination / ("adb.exe" if platform == "windows" else "adb")
-        if not executable.is_file():
-            raise ValueError("Google's archive does not contain ADB")
-        if platform != "windows":
-            executable.chmod(executable.stat().st_mode | 0o111)
+        for tool in ("adb", "fastboot"):
+            executable = destination / (tool + (".exe" if platform == "windows" else ""))
+            if not executable.is_file():
+                raise ValueError(f"Google's archive does not contain {tool}")
+            if platform != "windows":
+                executable.chmod(executable.stat().st_mode | 0o111)
 
 
 if __name__ == "__main__":

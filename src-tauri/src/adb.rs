@@ -6,91 +6,22 @@
 // (at your option) any later version.
 
 use crate::{
-    compatibility,
+    compatibility, platform_tools,
     state::{self, DeviceInfo, DeviceState},
 };
-use std::{
-    io::{Error, ErrorKind, Read},
-    process::{Command, Stdio},
-    time::{Duration, Instant},
-};
-use tauri::{path::BaseDirectory, Manager};
+use std::{io::Error, process::Command, time::Duration};
 
 pub fn run_adb_command(command: &str) -> Result<String, Error> {
-    run(
+    platform_tools::run(
         Command::new("adb").args(command.split_whitespace()),
         Duration::from_secs(15),
+        "ADB",
     )
 }
 
 pub(crate) fn bundled(app: &tauri::AppHandle, args: &[&str]) -> Result<String, String> {
-    let executable = app
-        .path()
-        .resolve(
-            format!("adb/adb{}", std::env::consts::EXE_SUFFIX),
-            BaseDirectory::Resource,
-        )
-        .map_err(|e| e.to_string())?;
     let timeout = if args.contains(&"install") { 180 } else { 15 };
-    run(
-        Command::new(executable).args(args),
-        Duration::from_secs(timeout),
-    )
-    .map_err(|e| e.to_string())
-}
-
-fn run(command: &mut Command, timeout: Duration) -> Result<String, Error> {
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
-    }
-    let mut child = command
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let mut stdout = child.stdout.take().unwrap();
-    let mut stderr = child.stderr.take().unwrap();
-    let out = std::thread::spawn(move || {
-        let mut bytes = Vec::new();
-        stdout.read_to_end(&mut bytes).map(|_| bytes)
-    });
-    let err = std::thread::spawn(move || {
-        let mut bytes = Vec::new();
-        stderr.read_to_end(&mut bytes).map(|_| bytes)
-    });
-    let deadline = Instant::now() + timeout;
-    let status = loop {
-        match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() < deadline => std::thread::sleep(Duration::from_millis(50)),
-            result => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(match result {
-                    Err(error) => error,
-                    _ => Error::new(
-                        ErrorKind::TimedOut,
-                        "ADB timed out. Wake the headset, check the USB cable, and retry.",
-                    ),
-                });
-            }
-        }
-    };
-    let stdout = out
-        .join()
-        .map_err(|_| Error::other("Could not read ADB output"))??;
-    let stderr = err
-        .join()
-        .map_err(|_| Error::other("Could not read ADB error"))??;
-    if !status.success() {
-        return Err(Error::other(format!(
-            "{} {}",
-            String::from_utf8_lossy(&stdout).trim(),
-            String::from_utf8_lossy(&stderr).trim()
-        )));
-    }
-    Ok(String::from_utf8_lossy(&stdout).trim().to_owned())
+    platform_tools::bundled(app, "adb", args, Duration::from_secs(timeout))
 }
 
 fn parse_devices(output: &str) -> Result<Option<(String, DeviceState)>, String> {

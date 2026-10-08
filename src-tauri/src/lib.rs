@@ -7,10 +7,12 @@
 
 pub mod adb;
 mod compatibility;
+pub mod fastboot;
+mod firmware_updater;
+mod platform_tools;
 mod rooting;
 pub mod state;
 mod updates;
-mod firmware_updater;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
