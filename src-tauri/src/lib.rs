@@ -10,6 +10,7 @@ mod compatibility;
 mod rooting;
 pub mod state;
 mod updates;
+mod firmware_updater;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -43,7 +44,8 @@ pub fn run() {
             rooting::restart_adb,
             rooting::verify_root,
             updates::check_app_update,
-            updates::install_app_update
+            updates::install_app_update,
+            firmware_updater::reboot_sideload_from_os,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
